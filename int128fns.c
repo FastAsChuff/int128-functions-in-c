@@ -33,6 +33,30 @@ uint32_t lzcnt128(myint128_t n) {
   return __builtin_clzll(n.hilo[INT128_HIGH]);
 }
 
+myint128_t nchoosek_simple(uint64_t n, uint64_t k) {
+  // OK for all k if n <= 122
+  // Returns -1 if overflow protection triggered.
+  myint128_t res;
+  uint64_t i, clz;
+  uint64_t temp;
+  res.i128 = 0;
+  if (k > n) return res;
+  if (n-k < k) k = n-k;
+  res.i128 = 1;
+  if (k == 0) return res;
+  res.i128 = n;
+  for (i=2; i<=k; i++) {    
+    temp = n-i+1;
+    clz = __builtin_clzll(temp);
+    if (res.i128 >> (62 + clz)) {
+      res.i128 = -1;
+      return res;
+    } else {
+      res.i128 = (res.i128 * temp)/i;
+    }
+  }
+  return res;
+}
 uint64_t nchoosek(uint64_t n, uint64_t k) {
   // No overflow for n <= 66.
   // Initialize with  nchoosek(0, 0);
