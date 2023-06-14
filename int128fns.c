@@ -267,7 +267,11 @@ _Bool isqrt128(const __int128 x, __int128 *isqrtx) {
     return 1;
   }
   if (x >= ((__int128)1 << 126)) return 0;
-  if (x < 0) return 0;
+  if (x == 1) {
+    isqrtx[0] = 1;
+    return 1;
+  }
+  if (x < 4) return 0;
   uint32_t i;
   __int128 y, ai;
   y = x;
