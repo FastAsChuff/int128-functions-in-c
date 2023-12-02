@@ -10,6 +10,12 @@
 
 // gcc alldivisors.c -o alldivisors.bin -O3 -march=native -lm -Wall
 
+/* e.g.
+...$ ./alldivisors.bin 123
+1 3 41 123
+Sum of all positive divisors = 168
+*/
+
 int main(int argc, char **argv) {
   myint128_t A_i128, S_i128;
   modulus128_t A, Divisor;
