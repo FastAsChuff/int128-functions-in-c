@@ -33,9 +33,61 @@ uint32_t lzcnt128(myint128_t n) {
   return __builtin_clzll(n.hilo[INT128_HIGH]);
 }
 
+uint32_t all_divisors_next(modulus128_t n, modulus128_t* d) {
+  // Iterates through all positive divisors >= 2
+  myint128_t nextd;
+  nextd = d->modulus;
+  for (int i=0; i<n.primecount; i++) {
+    if (d->primepower[i] < n.primepower[i]) {
+      d->primepower[i]++;
+      d->modulus.i128 = nextd.i128 * n.P[i].i128;
+      return 0;
+    } else {
+      nextd.i128 /= n.Ppow[i].i128;
+      d->primepower[i] = 0;
+    }
+  }
+  return 1;
+}
+
+void all_divisors_init(modulus128_t n, modulus128_t* d) {
+  // Initialise divisor d >= 2
+  d->modulus = n.P[0];
+  d->primecount = 1;
+  d->primepower = calloc(1, n.primecount);  
+  d->Ppow = NULL;
+  d->P = NULL;
+  d->S = NULL;
+  d->Q = NULL;
+  d->z = NULL;
+  d->SQRT1 = NULL;
+  d->primepower[0] = 1;
+}
+
+int32_t sigma128(modulus128_t *N, myint128_t *sigma) {
+  // Sum of all positive divisors
+  if (N->primecount <= 0) return -1;
+  uint32_t i, j;
+  sigma->i128 = 1;
+  __int128 sum, term;
+  for (i=0; i<N->primecount; i++) {
+    sum = 0;
+    term = 1;
+    for (j=0; j<N->primepower[i]; j++) {
+      sum += term;
+      term *= N->P[i].i128;
+    }
+    sum += term;
+    sigma->i128 *= sum;
+  }
+  return 0;
+}
+
+ 
 myint128_t nchoosek_simple(uint64_t n, uint64_t k) {
   // OK for all k if n <= 122
   // Returns -1 if overflow protection triggered.
+  // nCi = (nC{i-1} * (n-i+1))/i for i = 2 to r where nC1 = n
   myint128_t res;
   uint64_t i, clz;
   uint64_t temp;
@@ -57,6 +109,7 @@ myint128_t nchoosek_simple(uint64_t n, uint64_t k) {
   }
   return res;
 }
+
 uint64_t nchoosek(uint64_t n, uint64_t k) {
   // No overflow for n <= 66.
   // Initialize with  nchoosek(0, 0);
@@ -1754,4 +1807,3 @@ void fiba_slow(long i, myint128_t * res) {
   }
   res->i128 = xj.i128+xjp1.i128;
 }
-
